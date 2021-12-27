@@ -26,12 +26,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <memory>
 #include <string>
 
+#ifdef _WIN32
 #ifndef DLLEXPORT
   #ifdef MODORGANIZER_ARCHIVE_BUILDING
   #define DLLEXPORT _declspec(dllexport)
   #else
   #define DLLEXPORT _declspec(dllimport)
   #endif
+#endif
 #endif
 
 class FileData {
