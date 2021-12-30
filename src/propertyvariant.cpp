@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "propertyvariant.h"
 
-#include <guiddef.h>
+//#include <guiddef.h>
 
 #include <stdint.h>
 #include <string>
@@ -28,7 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 PropertyVariant::PropertyVariant()
 {
-  PropVariantInit(this);
+//  PropVariantInit(this);
+  assert(false && "Not implemented");
 }
 
 PropertyVariant::~PropertyVariant()
@@ -38,169 +39,187 @@ PropertyVariant::~PropertyVariant()
 
 void PropertyVariant::clear()
 {
-  PropVariantClear(this);
+//  PropVariantClear(this);
+  assert(false && "Not implemented");
 }
 
 //Arguably the behviours for empty here are wrong.
 template <> PropertyVariant::operator bool() const
 {
-  switch (vt)
-  {
-    case VT_EMPTY:
-      return false;
-
-    case VT_BOOL:
-      return boolVal != VARIANT_FALSE;
-
-    default:
-      throw std::runtime_error("Property is not a bool");
-  }
+//  switch (vt)
+//  {
+//    case VT_EMPTY:
+//      return false;
+//
+//    case VT_BOOL:
+//      return boolVal != VARIANT_FALSE;
+//
+//    default:
+//      throw std::runtime_error("Property is not a bool");
+//  }
+  assert(false && "Not implemented");
 }
 
 template <> PropertyVariant::operator uint64_t() const
 {
-  switch (vt)
-  {
-    case VT_EMPTY:
-      return 0;
-
-    case VT_UI1:
-      return bVal;
-
-    case VT_UI2:
-      return uiVal;
-
-    case VT_UI4:
-      return ulVal;
-
-    case VT_UI8:
-      return static_cast<uint64_t>(uhVal.QuadPart);
-
-    default:
-      throw std::runtime_error("Property is not an unsigned integer");
-  }
+//  switch (vt)
+//  {
+//    case VT_EMPTY:
+//      return 0;
+//
+//    case VT_UI1:
+//      return bVal;
+//
+//    case VT_UI2:
+//      return uiVal;
+//
+//    case VT_UI4:
+//      return ulVal;
+//
+//    case VT_UI8:
+//      return static_cast<uint64_t>(uhVal.QuadPart);
+//
+//    default:
+//      throw std::runtime_error("Property is not an unsigned integer");
+//  }
+  assert(false && "Not implemented");
+  return 0;
 }
 
 template <> PropertyVariant::operator uint32_t() const
 {
-  switch (vt)
-  {
-    case VT_EMPTY:
-      return 0;
-
-    case VT_UI1:
-      return bVal;
-
-    case VT_UI2:
-      return uiVal;
-
-    case VT_UI4:
-      return ulVal;
-
-    default:
-      throw std::runtime_error("Property is not an unsigned integer");
-  }
+//  switch (vt)
+//  {
+//    case VT_EMPTY:
+//      return 0;
+//
+//    case VT_UI1:
+//      return bVal;
+//
+//    case VT_UI2:
+//      return uiVal;
+//
+//    case VT_UI4:
+//      return ulVal;
+//
+//    default:
+//      throw std::runtime_error("Property is not an unsigned integer");
+//  }
+  assert(false && "Not implemented");
+  return 0;
 }
 
 
 template <> PropertyVariant::operator std::wstring() const
 {
-  switch (vt)
-  {
-    case VT_EMPTY:
-      return L"";
-
-    case VT_BSTR:
-      return std::wstring(bstrVal, ::SysStringLen(bstrVal));
-
-    default:
-      throw std::runtime_error("Property is not a string");
-  }
+//  switch (vt)
+//  {
+//    case VT_EMPTY:
+//      return L"";
+//
+//    case VT_BSTR:
+//      return std::wstring(bstrVal, ::SysStringLen(bstrVal));
+//
+//    default:
+//      throw std::runtime_error("Property is not a string");
+//  }
+  assert(false && "Not implemented");
+  return L"";
 }
 
 //This is what he does, though it looks rather a strange use of the property
 template <> PropertyVariant::operator std::string() const
 {
-  switch (vt)
-  {
-    case VT_EMPTY:
-      return "";
-
-    case VT_BSTR:
-      //If he can do a memcpy, I can do a reinterpret case
-      return std::string(reinterpret_cast<char const *>(bstrVal), ::SysStringByteLen(bstrVal));
-
-    default:
-      throw std::runtime_error("Property is not a string");
-  }
+//  switch (vt)
+//  {
+//    case VT_EMPTY:
+//      return "";
+//
+//    case VT_BSTR:
+//      //If he can do a memcpy, I can do a reinterpret case
+//      return std::string(reinterpret_cast<char const *>(bstrVal), ::SysStringByteLen(bstrVal));
+//
+//    default:
+//      throw std::runtime_error("Property is not a string");
+//  }
+  assert(false && "Not implemented");
+  return "";
 }
 
 //This is what he does, though it looks rather a strange use of the property
-template <> PropertyVariant::operator GUID() const
-{
-  switch (vt)
-  {
-    case VT_BSTR:
-      //He did a cast too!
-      return *reinterpret_cast<const GUID *>(bstrVal);
+//template <> PropertyVariant::operator GUID() const
+//{
+//  switch (vt)
+//  {
+//    case VT_BSTR:
+//      //He did a cast too!
+//      return *reinterpret_cast<const GUID *>(bstrVal);
+//
+//    default:
+//      throw std::runtime_error("Property is not a GUID (string)");
+//  }
+//}
 
-    default:
-      throw std::runtime_error("Property is not a GUID (string)");
-  }
-}
-
-template <> PropertyVariant::operator FILETIME() const
-{
-  switch (vt)
-  {
-    case VT_FILETIME:
-      return filetime;
-
-    default:
-      throw std::runtime_error("Property is not a file time");
-  }
-}
+//template <> PropertyVariant::operator FILETIME() const
+//{
+//  switch (vt)
+//  {
+//    case VT_FILETIME:
+//      return filetime;
+//
+//    default:
+//      throw std::runtime_error("Property is not a file time");
+//  }
+//}
 
 //Assignments
 template <> PropertyVariant& PropertyVariant::operator=(std::wstring const &str)
 {
-  clear();
-  vt = VT_BSTR;
-  bstrVal = ::SysAllocString(str.c_str());
-  if (bstrVal == NULL) {
-    throw std::bad_alloc();
-  }
+//  clear();
+//  vt = VT_BSTR;
+//  bstrVal = ::SysAllocString(str.c_str());
+//  if (bstrVal == NULL) {
+//    throw std::bad_alloc();
+//  }
+//  return *this;
+  assert(false && "Not implemented");
   return *this;
 }
 
 template <> PropertyVariant& PropertyVariant::operator=(bool const& n)
 {
-  clear();
-  vt = VT_BOOL;
-  boolVal = n ? VARIANT_TRUE : VARIANT_FALSE;
+//  clear();
+//  vt = VT_BOOL;
+//  boolVal = n ? VARIANT_TRUE : VARIANT_FALSE;
+//  return *this;
+  assert(false && "Not implemented");
   return *this;
 }
 
-template <> PropertyVariant& PropertyVariant::operator=(FILETIME const& n)
-{
-  clear();
-  vt = VT_FILETIME;
-  filetime = n;
-  return *this;
-}
+//template <> PropertyVariant& PropertyVariant::operator=(FILETIME const& n)
+//{
+//  clear();
+//  vt = VT_FILETIME;
+//  filetime = n;
+//  return *this;
+//}
 
 template <> PropertyVariant& PropertyVariant::operator=(uint32_t const& n)
 {
-  clear();
-  vt = VT_UI4;
-  ulVal = n;
+//  clear();
+//  vt = VT_UI4;
+//  ulVal = n;
+//  return *this;
+  assert(false && "Not implemented");
   return *this;
 }
 
 template <> PropertyVariant& PropertyVariant::operator=(uint64_t const &n)
 {
-  clear();
-  vt = VT_UI8;
-  uhVal.QuadPart = n;
+//  clear();
+//  vt = VT_UI8;
+//  uhVal.QuadPart = n;
+//  return *this;
+  assert(false && "Not implemented");
   return *this;
 }

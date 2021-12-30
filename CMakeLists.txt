@@ -3,14 +3,16 @@ cmake_minimum_required(VERSION 3.16)
 project(archive)
 
 if(NOT DEFINED DEPENDENCIES_DIR)
-	set(DEPENDENCIES_DIR ../../..)
+	set(DEPENDENCIES_DIR ${CMAKE_SOURCE_DIR}/../../..)
 endif()
 
+message(${DEPENDENCIES_DIR}/modorganizer_super/cmake_common)
 if(EXISTS ${DEPENDENCIES_DIR}/modorganizer_super/cmake_common)
 	set(project_type dll)
 	set(enable_warnings OFF)
 	include(${DEPENDENCIES_DIR}/modorganizer_super/cmake_common/project.cmake)
 else()
+	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 	include(FetchContent)
 
 	set(FETCHCONTENT_QUIET FALSE)

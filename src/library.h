@@ -21,7 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ARCHIVE_LIBRARY_H
 #define ARCHIVE_LIBRARY_H
 
-#include <Windows.h>
+#include <cassert>
+//#include <Windows.h>
+
+using HMODULE = void*;
 
 /**
  * Very small wrapper around Windows DLLs functions.
@@ -29,18 +32,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 class ALibrary {
 public:
 
-  ALibrary(const char* path) : 
-    m_Module{ nullptr }, m_LastError{ ERROR_SUCCESS } {
-    m_Module = LoadLibraryA(path);
-    if (m_Module == nullptr) {
-      updateLastError();
-    }
+  ALibrary(const char* path) :
+    m_Module{ nullptr }, m_LastError{ 0 } {
+//    m_Module{ nullptr }, m_LastError{ ERROR_SUCCESS } {
+//    m_Module = LoadLibraryA(path);
+//    if (m_Module == nullptr) {
+//      updateLastError();
+//    }
   }
 
   ~ALibrary() {
-    if (m_Module) {
-      FreeLibrary(m_Module);
-    }
+//    if (m_Module) {
+//      FreeLibrary(m_Module);
+//    }
   }
 
   /**
@@ -53,15 +57,17 @@ public:
    */
   template <class T>
   T resolve(const char* procName) {
-    if (!m_Module) {
-      return nullptr;
-    }
-    auto proc = GetProcAddress(m_Module, procName);
-    if (!proc) {
-      updateLastError();
-      return nullptr;
-    }
-    return reinterpret_cast<T>(proc);
+//    if (!m_Module) {
+//      return nullptr;
+//    }
+//    auto proc = GetProcAddress(m_Module, procName);
+//    if (!proc) {
+//      updateLastError();
+//      return nullptr;
+//    }
+//    return reinterpret_cast<T>(proc);
+    assert(false && "Not implemented");
+    return nullptr;
   }
 
   /**

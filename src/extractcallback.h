@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "7zip/Archive/IArchive.h"
 #include "7zip/IPassword.h"
 
-#include <atlbase.h>
+//#include <atlbase.h>
 
 #include <fmt/format.h>
 
@@ -45,11 +45,11 @@ class CArchiveExtractCallback: public IArchiveExtractCallback,
                                public ICryptoGetTextPassword
 {
 
-  //A note: It appears that the IArchiveExtractCallback interface includes the
-  //IProgress interface, swo we need to respond to it
-  UNKNOWN_3_INTERFACE(IArchiveExtractCallback,
-                      ICryptoGetTextPassword,
-                      IProgress);
+//  //A note: It appears that the IArchiveExtractCallback interface includes the
+//  //IProgress interface, swo we need to respond to it
+//  UNKNOWN_3_INTERFACE(IArchiveExtractCallback,
+//                      ICryptoGetTextPassword,
+//                      IProgress);
 
 public:
 
@@ -90,7 +90,7 @@ private:
 
 private:
 
-  CComPtr<IInArchive> m_ArchiveHandler;
+//  CComPtr<IInArchive> m_ArchiveHandler;
 
   UInt64 m_Total;
 
@@ -118,7 +118,7 @@ private:
   } m_ProcessedFileInfo;
 
   MultiOutputStream *m_OutputFileStream;
-  CComPtr<MultiOutputStream> m_OutFileStreamCom;
+//  CComPtr<MultiOutputStream> m_OutFileStreamCom;
 
   std::vector<std::filesystem::path> m_FullProcessedPaths;
 

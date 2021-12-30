@@ -37,7 +37,7 @@ class InputStream :
     public IInStream
 {
 
-  UNKNOWN_1_INTERFACE(IInStream);
+//  UNKNOWN_1_INTERFACE(IInStream);
 
 public:
   InputStream();

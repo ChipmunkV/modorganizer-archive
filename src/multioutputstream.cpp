@@ -18,22 +18,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <Unknwn.h>
+//#include <Unknwn.h>
 #include "multioutputstream.h"
 
 #include <fcntl.h>
-#include <io.h>
+//#include <io.h>
 
 static inline HRESULT ConvertBoolToHRESULT(bool result)
 {
-  if (result) {
-    return S_OK;
-  }
-  DWORD lastError = ::GetLastError();
-  if (lastError == 0) {
-    return E_FAIL;
-  }
-  return HRESULT_FROM_WIN32(lastError);
+//  if (result) {
+//    return S_OK;
+//  }
+//  DWORD lastError = ::GetLastError();
+//  if (lastError == 0) {
+//    return E_FAIL;
+//  }
+//  return HRESULT_FROM_WIN32(lastError);
+  assert(false && "Not implemented");
+  return 0;
 }
 
 //////////////////////////
@@ -105,16 +107,18 @@ STDMETHODIMP MultiOutputStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* ne
 
 STDMETHODIMP MultiOutputStream::SetSize(UInt64 newSize)
 {
-  bool result = true;
-  for (auto& file : m_Files) {
-    UInt64 currentPos;
-    if (!file.Seek(0, FILE_CURRENT, currentPos))
-      return E_FAIL;
-    bool result = file.SetLength(newSize);
-    UInt64 currentPos2;
-    result = result && file.Seek(currentPos, currentPos2);
-  }
-  return result ? S_OK : E_FAIL;
+//  bool result = true;
+//  for (auto& file : m_Files) {
+//    UInt64 currentPos;
+//    if (!file.Seek(0, FILE_CURRENT, currentPos))
+//      return E_FAIL;
+//    bool result = file.SetLength(newSize);
+//    UInt64 currentPos2;
+//    result = result && file.Seek(currentPos, currentPos2);
+//  }
+//  return result ? S_OK : E_FAIL;
+  assert(false && "Not implemented");
+  return 0;
 }
 
 HRESULT MultiOutputStream::GetSize(UInt64* size)

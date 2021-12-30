@@ -23,12 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 // This code is adapted from 7z client code.
 
-#include <Windows.h>
+//#include <Windows.h>
 
 #include "7zip//Archive/IArchive.h"
 
+#include <cassert>
 #include <filesystem>
 #include <string>
+
+using HANDLE = void*;
 
 namespace IO {
 
@@ -40,51 +43,54 @@ namespace IO {
   public:
 
     FileInfo() : m_Valid{ false } {};
-    FileInfo(std::filesystem::path const& path, BY_HANDLE_FILE_INFORMATION fileInfo) :
-      m_Valid{ true }, m_Path(path), m_FileInfo{ fileInfo } { }
+//    FileInfo(std::filesystem::path const& path, BY_HANDLE_FILE_INFORMATION fileInfo) :
+//      m_Valid{ true }, m_Path(path), m_FileInfo{ fileInfo } { }
 
     bool isValid() const { return m_Valid; }
 
     const std::filesystem::path& path() const { return m_Path; }
 
-    UInt32 fileAttributes() const { return m_FileInfo.dwFileAttributes; }
-    FILETIME creationTime() const { return m_FileInfo.ftCreationTime; }
-    FILETIME lastAccessTime() const { return m_FileInfo.ftLastAccessTime; }
-    FILETIME lastWriteTime() const { return m_FileInfo.ftLastWriteTime; }
-    UInt32 volumeSerialNumber() const { return m_FileInfo.dwVolumeSerialNumber; }
-    UInt64 fileSize() const { return ((UInt64)m_FileInfo.nFileSizeHigh) << 32 | m_FileInfo.nFileSizeLow; }
-    UInt32 numberOfLinks() const { return m_FileInfo.nNumberOfLinks; }
-    UInt64 fileInfex() const { return ((UInt64)m_FileInfo.nFileIndexHigh) << 32 | m_FileInfo.nFileIndexLow; }
+//    UInt32 fileAttributes() const { return m_FileInfo.dwFileAttributes; }
+//    FILETIME creationTime() const { return m_FileInfo.ftCreationTime; }
+//    FILETIME lastAccessTime() const { return m_FileInfo.ftLastAccessTime; }
+//    FILETIME lastWriteTime() const { return m_FileInfo.ftLastWriteTime; }
+//    UInt32 volumeSerialNumber() const { return m_FileInfo.dwVolumeSerialNumber; }
+//    UInt64 fileSize() const { return ((UInt64)m_FileInfo.nFileSizeHigh) << 32 | m_FileInfo.nFileSizeLow; }
+//    UInt32 numberOfLinks() const { return m_FileInfo.nNumberOfLinks; }
+//    UInt64 fileInfex() const { return ((UInt64)m_FileInfo.nFileIndexHigh) << 32 | m_FileInfo.nFileIndexLow; }
 
-    bool isArchived() const { return MatchesMask(FILE_ATTRIBUTE_ARCHIVE); }
-    bool isCompressed() const { return MatchesMask(FILE_ATTRIBUTE_COMPRESSED); }
-    bool isDir() const { return MatchesMask(FILE_ATTRIBUTE_DIRECTORY); }
-    bool isEncrypted() const { return MatchesMask(FILE_ATTRIBUTE_ENCRYPTED); }
-    bool isHidden() const { return MatchesMask(FILE_ATTRIBUTE_HIDDEN); }
-    bool isNormal() const { return MatchesMask(FILE_ATTRIBUTE_NORMAL); }
-    bool isOffline() const { return MatchesMask(FILE_ATTRIBUTE_OFFLINE); }
-    bool isReadOnly() const { return MatchesMask(FILE_ATTRIBUTE_READONLY); }
-    bool iasReparsePoint() const { return MatchesMask(FILE_ATTRIBUTE_REPARSE_POINT); }
-    bool isSparse() const { return MatchesMask(FILE_ATTRIBUTE_SPARSE_FILE); }
-    bool isSystem() const { return MatchesMask(FILE_ATTRIBUTE_SYSTEM); }
-    bool isTemporary() const { return MatchesMask(FILE_ATTRIBUTE_TEMPORARY); }
+//    bool isArchived() const { return MatchesMask(FILE_ATTRIBUTE_ARCHIVE); }
+//    bool isCompressed() const { return MatchesMask(FILE_ATTRIBUTE_COMPRESSED); }
+//    bool isDir() const { return MatchesMask(FILE_ATTRIBUTE_DIRECTORY); }
+//    bool isEncrypted() const { return MatchesMask(FILE_ATTRIBUTE_ENCRYPTED); }
+//    bool isHidden() const { return MatchesMask(FILE_ATTRIBUTE_HIDDEN); }
+//    bool isNormal() const { return MatchesMask(FILE_ATTRIBUTE_NORMAL); }
+//    bool isOffline() const { return MatchesMask(FILE_ATTRIBUTE_OFFLINE); }
+//    bool isReadOnly() const { return MatchesMask(FILE_ATTRIBUTE_READONLY); }
+//    bool iasReparsePoint() const { return MatchesMask(FILE_ATTRIBUTE_REPARSE_POINT); }
+//    bool isSparse() const { return MatchesMask(FILE_ATTRIBUTE_SPARSE_FILE); }
+//    bool isSystem() const { return MatchesMask(FILE_ATTRIBUTE_SYSTEM); }
+//    bool isTemporary() const { return MatchesMask(FILE_ATTRIBUTE_TEMPORARY); }
 
   private:
 
-    bool MatchesMask(UINT32 mask) const { return ((m_FileInfo.dwFileAttributes & mask) != 0); }
+//    bool MatchesMask(UINT32 mask) const { return ((m_FileInfo.dwFileAttributes & mask) != 0); }
 
     bool m_Valid;
     std::filesystem::path m_Path;
-    BY_HANDLE_FILE_INFORMATION m_FileInfo;
+//    BY_HANDLE_FILE_INFORMATION m_FileInfo;
   };
 
   class FileBase {
   public: // Constructors, destructor, assignment.
 
-    FileBase() noexcept : m_Handle{ INVALID_HANDLE_VALUE } { }
+//    FileBase() noexcept : m_Handle{ INVALID_HANDLE_VALUE } { }
+    FileBase() noexcept : m_Handle{ nullptr } { }
 
     FileBase(FileBase&& other) noexcept : m_Handle{ other.m_Handle } {
-      other.m_Handle = INVALID_HANDLE_VALUE;
+//      other.m_Handle = INVALID_HANDLE_VALUE;
+      assert(false && "Not implemented");
+      other.m_Handle = nullptr;
     }
 
     ~FileBase() noexcept {
@@ -172,40 +178,52 @@ namespace IO {
    * @return the created path.
    */
   inline std::filesystem::path make_path(std::wstring const& pathstr) {
-    namespace fs = std::filesystem;
-    constexpr const wchar_t* lprefix = L"\\\\?\\";
-    constexpr const wchar_t* unc_prefix = L"\\\\";
-    constexpr const wchar_t* unc_lprefix = L"\\\\?\\UNC\\";
-
-    // If path is already a long path, just return it:
-    if (pathstr.starts_with(lprefix)) {
-      return fs::path{ pathstr }.make_preferred();
-    }
-
-    fs::path path{ pathstr };
-
-    // Convert to an absolute path:
-    if (!path.is_absolute()) {
-      path = fs::absolute(path);
-    }
-
-    // backslashes
-    path = path.make_preferred();
-
-    // Get rid of duplicate separators and relative moves
-    path = path.lexically_normal();
-
-
-    const std::wstring pathstr_fixed = path.native();
-
-    // If this is a UNC, the prefix is different
-    if (pathstr_fixed.starts_with(unc_prefix)) {
-      return fs::path{ unc_lprefix + pathstr_fixed.substr(2) };
-    }
-
-    // Add the long-path prefix (cannot concatenate string an path so need
-    // to call .native() to concatenate):
-    return fs::path{ lprefix + pathstr_fixed };
+//    namespace fs = std::filesystem;
+//#ifdef _WIN32
+//    constexpr const wchar_t* lprefix = L"\\\\?\\";
+//    constexpr const wchar_t* unc_prefix = L"\\\\";
+//    constexpr const wchar_t* unc_lprefix = L"\\\\?\\UNC\\";
+//#else
+//    constexpr const char* lprefix = "\\\\?\\";
+//    constexpr const char* unc_prefix = "\\\\";
+//    constexpr const char* unc_lprefix = "\\\\?\\UNC\\";
+//#endif
+//
+//    // If path is already a long path, just return it:
+//    if (pathstr.starts_with(lprefix)) {
+//      return fs::path{ pathstr }.make_preferred();
+//    }
+//
+//    fs::path path{ pathstr };
+//
+//    // Convert to an absolute path:
+//    if (!path.is_absolute()) {
+//      path = fs::absolute(path);
+//    }
+//
+//    // backslashes
+//    path = path.make_preferred();
+//
+//    // Get rid of duplicate separators and relative moves
+//    path = path.lexically_normal();
+//
+//
+//#ifdef _WIN32
+//    const std::wstring pathstr_fixed = path.native();
+//#else
+//    const std::string pathstr_fixed = path.native();
+//#endif
+//
+//    // If this is a UNC, the prefix is different
+//    if (pathstr_fixed.starts_with(unc_prefix)) {
+//      return fs::path{ unc_lprefix + pathstr_fixed.substr(2) };
+//    }
+//
+//    // Add the long-path prefix (cannot concatenate string an path so need
+//    // to call .native() to concatenate):
+//    return fs::path{ lprefix + pathstr_fixed };
+    assert(false && "Not implemented");
+    return std::filesystem::path{};
   }
 
 }

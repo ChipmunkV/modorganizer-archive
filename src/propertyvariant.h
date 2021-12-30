@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef PROPERTYVARIANT_H
 #define PROPERTYVARIANT_H
 
-#include <PropIdl.h>
+#include <cassert>
+//#include <PropIdl.h>
+#include <Common/MyWindows.h>
 
 /** This class implements a wrapper round the PROPVARIANT structure which
  * makes it a little friendler to use and a little more C++ish
@@ -39,7 +41,9 @@ public:
   void clear();
 
   bool is_empty() {
-    return vt == VT_EMPTY;
+//    return vt == VT_EMPTY;
+    assert(false && "Not implemented");
+    return false;
   }
 
   //It's too much like hard work listing all the valid ones. If it doesn't

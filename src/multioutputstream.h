@@ -38,11 +38,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * Note that the handling on errors could be better.
  */
-class MultiOutputStream : 
+class MultiOutputStream :
   public IOutStream
 {
 
-  UNKNOWN_1_INTERFACE(IOutStream);
+//  UNKNOWN_1_INTERFACE(IOutStream);
 
 public:
 

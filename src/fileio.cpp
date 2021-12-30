@@ -27,39 +27,49 @@ namespace IO {
   // FileBase
 
   bool FileBase::Close() noexcept {
-    if (m_Handle == INVALID_HANDLE_VALUE)
-      return true;
-    if (!::CloseHandle(m_Handle))
-      return false;
-    m_Handle = INVALID_HANDLE_VALUE;
+//    if (m_Handle == INVALID_HANDLE_VALUE)
+//      return true;
+//    if (!::CloseHandle(m_Handle))
+//      return false;
+//    m_Handle = INVALID_HANDLE_VALUE;
+//    return true;
+    assert(false && "Not implemented");
     return true;
   }
 
   bool FileBase::GetPosition(UInt64& position) noexcept {
-    return Seek(0, FILE_CURRENT, position);
+//    return Seek(0, FILE_CURRENT, position);
+    assert(false && "Not implemented");
+    return true;
   }
 
   bool FileBase::GetLength(UInt64& length) const noexcept {
-    DWORD sizeHigh;
-    DWORD sizeLow = ::GetFileSize(m_Handle, &sizeHigh);
-    if (sizeLow == 0xFFFFFFFF)
-      if (::GetLastError() != NO_ERROR)
-        return false;
-    length = (((UInt64)sizeHigh) << 32) + sizeLow;
+//    DWORD sizeHigh;
+//    DWORD sizeLow = ::GetFileSize(m_Handle, &sizeHigh);
+//    if (sizeLow == 0xFFFFFFFF)
+//      if (::GetLastError() != NO_ERROR)
+//        return false;
+//    length = (((UInt64)sizeHigh) << 32) + sizeLow;
+//    return true;
+    assert(false && "Not implemented");
     return true;
   }
 
   bool FileBase::Seek(Int64 distanceToMove, DWORD moveMethod, UInt64& newPosition)  noexcept {
-    LONG high = (LONG)(distanceToMove >> 32);
-    DWORD low = ::SetFilePointer(m_Handle, (LONG)(distanceToMove & 0xFFFFFFFF), &high, moveMethod);
-    if (low == 0xFFFFFFFF)
-      if (::GetLastError() != NO_ERROR)
-        return false;
-    newPosition = (((UInt64)(UInt32)high) << 32) + low;
+//    LONG high = (LONG)(distanceToMove >> 32);
+//    DWORD low = ::SetFilePointer(m_Handle, (LONG)(distanceToMove & 0xFFFFFFFF), &high, moveMethod);
+//    if (low == 0xFFFFFFFF)
+//      if (::GetLastError() != NO_ERROR)
+//        return false;
+//    newPosition = (((UInt64)(UInt32)high) << 32) + low;
+//    return true;
+    assert(false && "Not implemented");
     return true;
   }
   bool FileBase::Seek(UInt64 position, UInt64& newPosition) noexcept {
-    return Seek(position, FILE_BEGIN, newPosition);
+//    return Seek(position, FILE_BEGIN, newPosition);
+    assert(false && "Not implemented");
+    return true;
   }
 
   bool FileBase::SeekToBegin() noexcept {
@@ -68,43 +78,53 @@ namespace IO {
   }
 
   bool FileBase::SeekToEnd(UInt64& newPosition) noexcept {
-    return Seek(0, FILE_END, newPosition);
+//    return Seek(0, FILE_END, newPosition);
+    assert(false && "Not implemented");
+    return true;
   }
 
   bool FileBase::Create(std::filesystem::path const& path, DWORD desiredAccess, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-    if (!Close()) {
-      return false;
-    }
-
-    m_Handle = ::CreateFileW(path.c_str(), desiredAccess, shareMode,
-      (LPSECURITY_ATTRIBUTES)NULL, creationDisposition, flagsAndAttributes, (HANDLE)NULL);
-
-    return m_Handle != INVALID_HANDLE_VALUE;
+//    if (!Close()) {
+//      return false;
+//    }
+//
+//    m_Handle = ::CreateFileW(path.c_str(), desiredAccess, shareMode,
+//      (LPSECURITY_ATTRIBUTES)NULL, creationDisposition, flagsAndAttributes, (HANDLE)NULL);
+//
+//    return m_Handle != INVALID_HANDLE_VALUE;
+    assert(false && "Not implemented");
+    return true;
   }
 
   bool FileBase::GetFileInformation(std::filesystem::path const& path, FileInfo* info) noexcept {
-    // Use FileBase to open/close the file:
-    FileBase file;
-    if (!file.Create(path, 0, FILE_SHARE_READ, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS))
-      return false;
-    
-    BY_HANDLE_FILE_INFORMATION finfo;
-    if (!BOOLToBool(GetFileInformationByHandle(file.m_Handle, &finfo))) {
-      return false;
-    }
-
-    *info = FileInfo(path, finfo);
+//    // Use FileBase to open/close the file:
+//    FileBase file;
+//    if (!file.Create(path, 0, FILE_SHARE_READ, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS))
+//      return false;
+//
+//    BY_HANDLE_FILE_INFORMATION finfo;
+//    if (!BOOLToBool(GetFileInformationByHandle(file.m_Handle, &finfo))) {
+//      return false;
+//    }
+//
+//    *info = FileInfo(path, finfo);
+//    return true;
+    assert(false && "Not implemented");
     return true;
   }
 
   // FileIn
 
   bool FileIn::Open(std::filesystem::path const& filepath, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-    bool res = Create(filepath.c_str(), GENERIC_READ, shareMode, creationDisposition, flagsAndAttributes);
-    return res;
+//    bool res = Create(filepath.c_str(), GENERIC_READ, shareMode, creationDisposition, flagsAndAttributes);
+//    return res;
+    assert(false && "Not implemented");
+    return true;
   }
   bool FileIn::OpenShared(std::filesystem::path const& filepath, bool shareForWrite) noexcept {
-    return Open(filepath, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0), OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL);
+//    return Open(filepath, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0), OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL);
+    assert(false && "Not implemented");
+    return true;
   }
   bool FileIn::Open(std::filesystem::path const& filepath) noexcept {
     return OpenShared(filepath, false);
@@ -126,10 +146,12 @@ namespace IO {
     return true;
   }
   bool FileIn::Read1(void* data, UInt32 size, UInt32& processedSize) noexcept {
-    DWORD processedLoc = 0;
-    bool res = BOOLToBool(::ReadFile(m_Handle, data, size, &processedLoc, NULL));
-    processedSize = (UInt32)processedLoc;
-    return res;
+//    DWORD processedLoc = 0;
+//    bool res = BOOLToBool(::ReadFile(m_Handle, data, size, &processedLoc, NULL));
+//    processedSize = (UInt32)processedLoc;
+//    return res;
+    assert(false && "Not implemented");
+    return false;
   }
   bool FileIn::ReadPart(void* data, UInt32 size, UInt32& processedSize) noexcept {
     if (size > kChunkSizeMax)
@@ -140,15 +162,21 @@ namespace IO {
   // FileOut
 
   bool FileOut::Open(std::filesystem::path const& fileName, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-    return Create(fileName, GENERIC_WRITE, shareMode, creationDisposition, flagsAndAttributes);
+//    return Create(fileName, GENERIC_WRITE, shareMode, creationDisposition, flagsAndAttributes);
+    assert(false && "Not implemented");
+    return false;
   }
 
   bool FileOut::Open(std::filesystem::path const& fileName) noexcept {
-    return Open(fileName, FILE_SHARE_READ, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL);
+//    return Open(fileName, FILE_SHARE_READ, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL);
+    assert(false && "Not implemented");
+    return false;
   }
 
   bool FileOut::SetTime(const FILETIME* cTime, const FILETIME* aTime, const FILETIME* mTime) noexcept {
-    return BOOLToBool(::SetFileTime(m_Handle, cTime, aTime, mTime));
+//    return BOOLToBool(::SetFileTime(m_Handle, cTime, aTime, mTime));
+    assert(false && "Not implemented");
+    return false;
   }
   bool FileOut::SetMTime(const FILETIME* mTime) noexcept {
     return SetTime(NULL, NULL, mTime);
@@ -179,16 +207,20 @@ namespace IO {
     return SetEndOfFile();
   }
   bool FileOut::SetEndOfFile() noexcept {
-    return BOOLToBool(::SetEndOfFile(m_Handle));
+//    return BOOLToBool(::SetEndOfFile(m_Handle));
+    assert(false && "Not implemented");
+    return false;
   }
 
   bool FileOut::WritePart(const void* data, UInt32 size, UInt32& processedSize) noexcept {
-    if (size > kChunkSizeMax)
-      size = kChunkSizeMax;
-    DWORD processedLoc = 0;
-    bool res = BOOLToBool(::WriteFile(m_Handle, data, size, &processedLoc, NULL));
-    processedSize = (UInt32)processedLoc;
-    return res;
+//    if (size > kChunkSizeMax)
+//      size = kChunkSizeMax;
+//    DWORD processedLoc = 0;
+//    bool res = BOOLToBool(::WriteFile(m_Handle, data, size, &processedLoc, NULL));
+//    processedSize = (UInt32)processedLoc;
+//    return res;
+    assert(false && "Not implemented");
+    return false;
   }
 
 }

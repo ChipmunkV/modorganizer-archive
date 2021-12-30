@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //This file instantiates the GUIDs needed for linking with the 7zip code
-#include <initguid.h>
+//#include <initguid.h>
 
 //extractcallback, opencallback
 #include "7zip/IPassword.h"
