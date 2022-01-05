@@ -21,9 +21,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef PROPERTYVARIANT_H
 #define PROPERTYVARIANT_H
 
-#include <cassert>
-//#include <PropIdl.h>
+#ifdef _WIN32
+#include <PropIdl.h>
+#endif
 #include <Common/MyWindows.h>
+#ifndef _WIN32
+inline void PropVariantInit ( PROPVARIANT * pvar )
+{
+  memset ( pvar, 0, sizeof(PROPVARIANT) );
+}
+#endif
 
 /** This class implements a wrapper round the PROPVARIANT structure which
  * makes it a little friendler to use and a little more C++ish
@@ -41,9 +48,7 @@ public:
   void clear();
 
   bool is_empty() {
-//    return vt == VT_EMPTY;
-    assert(false && "Not implemented");
-    return false;
+    return vt == VT_EMPTY;
   }
 
   //It's too much like hard work listing all the valid ones. If it doesn't

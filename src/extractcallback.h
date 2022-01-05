@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "7zip/Archive/IArchive.h"
 #include "7zip/IPassword.h"
+#include "Common/MyCom.h"
 
 //#include <atlbase.h>
 
@@ -45,11 +46,11 @@ class CArchiveExtractCallback: public IArchiveExtractCallback,
                                public ICryptoGetTextPassword
 {
 
-//  //A note: It appears that the IArchiveExtractCallback interface includes the
-//  //IProgress interface, swo we need to respond to it
-//  UNKNOWN_3_INTERFACE(IArchiveExtractCallback,
-//                      ICryptoGetTextPassword,
-//                      IProgress);
+  //A note: It appears that the IArchiveExtractCallback interface includes the
+  //IProgress interface, swo we need to respond to it
+  UNKNOWN_3_INTERFACE(IArchiveExtractCallback,
+                      ICryptoGetTextPassword,
+                      IProgress);
 
 public:
 
@@ -60,7 +61,7 @@ public:
     Archive::PasswordCallback passwordCallback,
     Archive::LogCallback logCallback,
     IInArchive *archiveHandler,
-    std::wstring const& directoryPath,
+    PathStr const& directoryPath,
     FileData * const *fileData,
     std::size_t nbFiles,
     UInt64 totalFileSize,
@@ -77,10 +78,10 @@ public:
 
 private:
 
-  void reportError(const std::wstring& message);
+  void reportError(const PathStr& message);
 
   template <class... Args>
-  void reportError(const wchar_t* format, Args&& ...args)
+  void reportError(const PathChar* format, Args&& ...args)
   {
     reportError(fmt::format(format, std::forward<Args>(args)...));
   }
@@ -90,7 +91,7 @@ private:
 
 private:
 
-//  CComPtr<IInArchive> m_ArchiveHandler;
+  CMyComPtr<IInArchive> m_ArchiveHandler;
 
   UInt64 m_Total;
 
@@ -118,7 +119,7 @@ private:
   } m_ProcessedFileInfo;
 
   MultiOutputStream *m_OutputFileStream;
-//  CComPtr<MultiOutputStream> m_OutFileStreamCom;
+  CMyComPtr<MultiOutputStream> m_OutFileStreamCom;
 
   std::vector<std::filesystem::path> m_FullProcessedPaths;
 

@@ -23,16 +23,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static inline HRESULT ConvertBoolToHRESULT(bool result)
 {
-//  if (result) {
-//    return S_OK;
-//  }
-//  DWORD lastError = ::GetLastError();
-//  if (lastError == 0) {
-//    return E_FAIL;
-//  }
-//  return HRESULT_FROM_WIN32(lastError);
-  assert(false && "Not implemented");
-  return 0;
+  std::cerr << "FIXME: inputstream ConvertBoolToHRESULT" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+#ifdef _WIN32
+  if (result) {
+    return S_OK;
+  }
+  DWORD lastError = ::GetLastError();
+  if (lastError == 0) {
+    return E_FAIL;
+  }
+  return HRESULT_FROM_WIN32(lastError);
+#else
+  return result ? S_OK : E_FAIL;
+#endif
 }
 
 InputStream::InputStream()
@@ -48,20 +51,23 @@ bool InputStream::Open(std::filesystem::path const& filename)
 
 STDMETHODIMP InputStream::Read(void *data, UInt32 size, UInt32 *processedSize)
 {
-//  UInt32 realProcessedSize;
-//  bool result =  m_File.Read(data, size, realProcessedSize);
-//
-//  if (processedSize != nullptr) {
-//    *processedSize = realProcessedSize;
-//  }
-//
-//  if (result) {
-//    return S_OK;
-//  }
-//
-//  return HRESULT_FROM_WIN32(::GetLastError());
-  assert(false && "Not implemented");
-  return 0;
+  std::cerr << "FIXME: inputstream Read" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+  UInt32 realProcessedSize;
+  bool result =  m_File.Read(data, size, realProcessedSize);
+
+  if (processedSize != nullptr) {
+    *processedSize = realProcessedSize;
+  }
+
+#ifdef _WIN32
+  if (result) {
+    return S_OK;
+  }
+
+  return HRESULT_FROM_WIN32(::GetLastError());
+#else
+  return result ? S_OK : E_FAIL;
+#endif
 }
 
 STDMETHODIMP InputStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition)

@@ -21,8 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef UNKNOWN_IMPL_H
 #define UNKNOWN_IMPL_H
 
-//#define WIN32_LEAN_AND_MEAN
-//#include <Windows.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include <atomic>
+#endif
 
 /* This implements a common way of creating classes which implement one or more
  * COM interfaces.
@@ -59,6 +63,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* Do not use these macros, use the ones at the bottom */
+#ifdef _WIN32
 #define UNKNOWN__INTERFACE_BEGIN\
  public:\
   STDMETHOD_(ULONG, AddRef)()\
@@ -78,6 +83,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   STDMETHOD(QueryInterface)(REFGUID iid, void **outObject)\
   {\
     if (iid == IID_IUnknown) {
+#else
+#define UNKNOWN__INTERFACE_BEGIN\
+ public:\
+  STDMETHOD_(ULONG, AddRef)()\
+  {\
+    return ++m_RefCount__;\
+  }\
+\
+  STDMETHOD_(ULONG, Release)()\
+  {\
+    ULONG res = --m_RefCount__;\
+    if (res == 0) {\
+      delete this;\
+    }\
+    return res;\
+  }\
+\
+  STDMETHOD(QueryInterface)(REFGUID iid, void **outObject)\
+  {\
+    if (iid == IID_IUnknown) {
+#endif
 
 #define UNKNOWN__INTERFACE_UNKNOWN(interface)\
       *outObject = static_cast<IUnknown *>(static_cast<interface *>(this));\
@@ -88,6 +114,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
       *outObject = static_cast<interface *>(this);\
     }
 
+#ifdef _WIN32
 #define UNKNOWN__INTERFACE_END\
     else {\
       *outObject = nullptr;\
@@ -98,6 +125,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   }\
  private:\
   ULONG m_RefCount__ = 0
+#else
+#define UNKNOWN__INTERFACE_END\
+    else {\
+      *outObject = nullptr;\
+      return E_NOINTERFACE;\
+    }\
+    AddRef();\
+    return S_OK;\
+  }\
+ private:\
+  std::atomic<ULONG> m_RefCount__ = 0
+#endif
 
 /* These are the macros you should be using */
 #define UNKNOWN_1_INTERFACE(interface)\

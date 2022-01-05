@@ -34,7 +34,7 @@ static inline HRESULT ConvertBoolToHRESULT(bool result)
 //    return E_FAIL;
 //  }
 //  return HRESULT_FROM_WIN32(lastError);
-  assert(false && "Not implemented");
+  std::cerr << "FIXME: Not implemented" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n"; assert(false && "Not implemented");
   return 0;
 }
 
@@ -107,18 +107,16 @@ STDMETHODIMP MultiOutputStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* ne
 
 STDMETHODIMP MultiOutputStream::SetSize(UInt64 newSize)
 {
-//  bool result = true;
-//  for (auto& file : m_Files) {
-//    UInt64 currentPos;
-//    if (!file.Seek(0, FILE_CURRENT, currentPos))
-//      return E_FAIL;
-//    bool result = file.SetLength(newSize);
-//    UInt64 currentPos2;
-//    result = result && file.Seek(currentPos, currentPos2);
-//  }
-//  return result ? S_OK : E_FAIL;
-  assert(false && "Not implemented");
-  return 0;
+  bool result = true;
+  for (auto& file : m_Files) {
+    UInt64 currentPos;
+    if (!file.Seek(0, FILE_CURRENT, currentPos))
+      return E_FAIL;
+    bool result = file.SetLength(newSize);
+    UInt64 currentPos2;
+    result = result && file.Seek(currentPos, currentPos2);
+  }
+  return result ? S_OK : E_FAIL;
 }
 
 HRESULT MultiOutputStream::GetSize(UInt64* size)

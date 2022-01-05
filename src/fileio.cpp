@@ -27,49 +27,87 @@ namespace IO {
   // FileBase
 
   bool FileBase::Close() noexcept {
-//    if (m_Handle == INVALID_HANDLE_VALUE)
-//      return true;
-//    if (!::CloseHandle(m_Handle))
-//      return false;
-//    m_Handle = INVALID_HANDLE_VALUE;
-//    return true;
-    assert(false && "Not implemented");
+#ifdef _WIN32
+    if (m_Handle == INVALID_HANDLE_VALUE)
+      return true;
+    if (!::CloseHandle(m_Handle))
+      return false;
+    m_Handle = INVALID_HANDLE_VALUE;
     return true;
+#else
+    if (!m_Stream.is_open())
+      return true;
+    if (m_Stream.close(), m_Stream.fail())
+      return false;
+    m_Stream = std::fstream();
+    std::cerr << "FIXME: FileBase::Close" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    return true;
+#endif
   }
 
   bool FileBase::GetPosition(UInt64& position) noexcept {
-//    return Seek(0, FILE_CURRENT, position);
-    assert(false && "Not implemented");
+#ifdef _WIN32
+    return Seek(0, FILE_CURRENT, position);
+#else
+    if (!m_Stream.is_open() || !(m_OpenMode & (std::ios::in | std::ios::out)))
+      return false;
+    const auto pos = m_OpenMode & std::ios::in ? m_Stream.tellg() : m_Stream.tellp();
+    if (!m_Stream.good())
+      return false;
+    position = pos;
     return true;
+#endif
   }
 
   bool FileBase::GetLength(UInt64& length) const noexcept {
-//    DWORD sizeHigh;
-//    DWORD sizeLow = ::GetFileSize(m_Handle, &sizeHigh);
-//    if (sizeLow == 0xFFFFFFFF)
-//      if (::GetLastError() != NO_ERROR)
-//        return false;
-//    length = (((UInt64)sizeHigh) << 32) + sizeLow;
-//    return true;
-    assert(false && "Not implemented");
+#ifdef _WIN32
+    DWORD sizeHigh;
+    DWORD sizeLow = ::GetFileSize(m_Handle, &sizeHigh);
+    if (sizeLow == 0xFFFFFFFF)
+      if (::GetLastError() != NO_ERROR)
+        return false;
+    length = (((UInt64)sizeHigh) << 32) + sizeLow;
     return true;
+#else
+    if (!m_Stream.is_open() || !(m_OpenMode & (std::ios::in | std::ios::out)))
+      return false;
+    std::fstream stream(m_Path, std::ios::ate | std::ios::binary);
+    const auto pos = m_OpenMode & std::ios::in ? m_Stream.tellg() : m_Stream.tellp();
+    if (!m_Stream.good())
+      return false;
+    length = pos;
+    return true;
+#endif
   }
 
   bool FileBase::Seek(Int64 distanceToMove, DWORD moveMethod, UInt64& newPosition)  noexcept {
-//    LONG high = (LONG)(distanceToMove >> 32);
-//    DWORD low = ::SetFilePointer(m_Handle, (LONG)(distanceToMove & 0xFFFFFFFF), &high, moveMethod);
-//    if (low == 0xFFFFFFFF)
-//      if (::GetLastError() != NO_ERROR)
-//        return false;
-//    newPosition = (((UInt64)(UInt32)high) << 32) + low;
-//    return true;
-    assert(false && "Not implemented");
+#ifdef _WIN32
+    LONG high = (LONG)(distanceToMove >> 32);
+    DWORD low = ::SetFilePointer(m_Handle, (LONG)(distanceToMove & 0xFFFFFFFF), &high, moveMethod);
+    if (low == 0xFFFFFFFF)
+      if (::GetLastError() != NO_ERROR)
+        return false;
+    newPosition = (((UInt64)(UInt32)high) << 32) + low;
     return true;
+#else
+    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    if (!m_Stream.is_open() || !(m_OpenMode & (std::ios::in | std::ios::out)) ||
+        (moveMethod != FILE_BEGIN && moveMethod != FILE_CURRENT && moveMethod != FILE_END))
+      return false;
+    const auto m = moveMethod == FILE_BEGIN ? std::ios::beg : moveMethod == FILE_CURRENT ? std::ios::cur : std::ios::end;
+    if (!m_Stream.good())
+      m_Stream.clear();
+    m_OpenMode & std::ios::in ? (void) m_Stream.seekg(distanceToMove, m) : (void) m_Stream.seekp(distanceToMove, m);
+    const auto pos = m_OpenMode & std::ios::in ? m_Stream.tellg() : m_Stream.tellp();
+    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    if (!m_Stream.good())
+      return false;
+    newPosition = pos;
+    return true;
+#endif
   }
   bool FileBase::Seek(UInt64 position, UInt64& newPosition) noexcept {
-//    return Seek(position, FILE_BEGIN, newPosition);
-    assert(false && "Not implemented");
-    return true;
+    return Seek(position, FILE_BEGIN, newPosition);
   }
 
   bool FileBase::SeekToBegin() noexcept {
@@ -78,23 +116,31 @@ namespace IO {
   }
 
   bool FileBase::SeekToEnd(UInt64& newPosition) noexcept {
-//    return Seek(0, FILE_END, newPosition);
-    assert(false && "Not implemented");
-    return true;
+    return Seek(0, FILE_END, newPosition);
   }
 
+#ifdef _WIN32
   bool FileBase::Create(std::filesystem::path const& path, DWORD desiredAccess, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-//    if (!Close()) {
-//      return false;
-//    }
-//
-//    m_Handle = ::CreateFileW(path.c_str(), desiredAccess, shareMode,
-//      (LPSECURITY_ATTRIBUTES)NULL, creationDisposition, flagsAndAttributes, (HANDLE)NULL);
-//
-//    return m_Handle != INVALID_HANDLE_VALUE;
-    assert(false && "Not implemented");
-    return true;
+    if (!Close()) {
+      return false;
+    }
+
+    m_Handle = ::CreateFileW(path.c_str(), desiredAccess, shareMode,
+      (LPSECURITY_ATTRIBUTES)NULL, creationDisposition, flagsAndAttributes, (HANDLE)NULL);
+
+    return m_Handle != INVALID_HANDLE_VALUE;
   }
+#else
+  bool FileBase::Create(std::filesystem::path const& path, std::ios::openmode openMode) noexcept {
+    if (!Close()) {
+      return false;
+    }
+
+    m_Stream.open(m_Path = path, m_OpenMode = openMode | std::ios::binary);
+    std::cerr << "FIXME: FileBase::Create" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    return m_Stream.good();
+  }
+#endif
 
   bool FileBase::GetFileInformation(std::filesystem::path const& path, FileInfo* info) noexcept {
 //    // Use FileBase to open/close the file:
@@ -109,25 +155,27 @@ namespace IO {
 //
 //    *info = FileInfo(path, finfo);
 //    return true;
-    assert(false && "Not implemented");
+    std::cerr << "FIXME: Not implemented" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n"; assert(false && "Not implemented");
     return true;
   }
 
   // FileIn
 
+#ifdef _WIN32
   bool FileIn::Open(std::filesystem::path const& filepath, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-//    bool res = Create(filepath.c_str(), GENERIC_READ, shareMode, creationDisposition, flagsAndAttributes);
-//    return res;
-    assert(false && "Not implemented");
-    return true;
+    bool res = Create(filepath.c_str(), GENERIC_READ, shareMode, creationDisposition, flagsAndAttributes);
+    return res;
   }
   bool FileIn::OpenShared(std::filesystem::path const& filepath, bool shareForWrite) noexcept {
-//    return Open(filepath, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0), OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL);
-    assert(false && "Not implemented");
-    return true;
+    return Open(filepath, FILE_SHARE_READ | (shareForWrite ? FILE_SHARE_WRITE : 0), OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL);
   }
+#endif
   bool FileIn::Open(std::filesystem::path const& filepath) noexcept {
+#ifdef _WIN32
     return OpenShared(filepath, false);
+#else
+    return Create(filepath, std::ios::in);
+#endif
   }
   bool FileIn::Read(void* data, UInt32 size, UInt32& processedSize) noexcept {
     processedSize = 0;
@@ -143,15 +191,23 @@ namespace IO {
       data = (void*)((unsigned char*)data + processedLoc);
       size -= processedLoc;
     } while (size > 0);
+    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     return true;
   }
   bool FileIn::Read1(void* data, UInt32 size, UInt32& processedSize) noexcept {
-//    DWORD processedLoc = 0;
-//    bool res = BOOLToBool(::ReadFile(m_Handle, data, size, &processedLoc, NULL));
-//    processedSize = (UInt32)processedLoc;
-//    return res;
-    assert(false && "Not implemented");
-    return false;
+#ifdef _WIN32
+    DWORD processedLoc = 0;
+    bool res = BOOLToBool(::ReadFile(m_Handle, data, size, &processedLoc, NULL));
+    processedSize = (UInt32)processedLoc;
+    return res;
+#else
+    if (!m_Stream.is_open() || !(m_OpenMode & std::ios::in))
+      return false;
+    m_Stream.read((char*)data, size);
+    processedSize = m_Stream.gcount();
+    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    return !m_Stream.bad();
+#endif
   }
   bool FileIn::ReadPart(void* data, UInt32 size, UInt32& processedSize) noexcept {
     if (size > kChunkSizeMax)
@@ -161,22 +217,27 @@ namespace IO {
 
   // FileOut
 
+#ifdef _WIN32
   bool FileOut::Open(std::filesystem::path const& fileName, DWORD shareMode, DWORD creationDisposition, DWORD flagsAndAttributes) noexcept {
-//    return Create(fileName, GENERIC_WRITE, shareMode, creationDisposition, flagsAndAttributes);
-    assert(false && "Not implemented");
-    return false;
+    return Create(fileName, GENERIC_WRITE, shareMode, creationDisposition, flagsAndAttributes);
   }
+#endif
 
   bool FileOut::Open(std::filesystem::path const& fileName) noexcept {
-//    return Open(fileName, FILE_SHARE_READ, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL);
-    assert(false && "Not implemented");
-    return false;
+#ifdef _WIN32
+    return Open(fileName, FILE_SHARE_READ, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL);
+#else
+    return Create(fileName, std::ios::out);
+#endif
   }
 
   bool FileOut::SetTime(const FILETIME* cTime, const FILETIME* aTime, const FILETIME* mTime) noexcept {
-//    return BOOLToBool(::SetFileTime(m_Handle, cTime, aTime, mTime));
-    assert(false && "Not implemented");
-    return false;
+#ifdef _WIN32
+    return BOOLToBool(::SetFileTime(m_Handle, cTime, aTime, mTime));
+#else
+    std::cerr << "FIXME: Not implemented FileOut::SetTime" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    return true;
+#endif
   }
   bool FileOut::SetMTime(const FILETIME* mTime) noexcept {
     return SetTime(NULL, NULL, mTime);
@@ -207,20 +268,38 @@ namespace IO {
     return SetEndOfFile();
   }
   bool FileOut::SetEndOfFile() noexcept {
-//    return BOOLToBool(::SetEndOfFile(m_Handle));
-    assert(false && "Not implemented");
-    return false;
+#ifdef _WIN32
+    return BOOLToBool(::SetEndOfFile(m_Handle));
+#else
+    if (!m_Stream.is_open() || !(m_OpenMode & std::ios::out))
+      return false;
+    m_Stream.flush();
+    if (!m_Stream.good())
+      return false;
+    UInt64 pos;
+    if (!GetPosition(pos))
+      return false;
+    std::error_code ec;
+    std::filesystem::resize_file(m_Path, pos, ec);
+    return !ec;
+#endif
   }
 
   bool FileOut::WritePart(const void* data, UInt32 size, UInt32& processedSize) noexcept {
-//    if (size > kChunkSizeMax)
-//      size = kChunkSizeMax;
-//    DWORD processedLoc = 0;
-//    bool res = BOOLToBool(::WriteFile(m_Handle, data, size, &processedLoc, NULL));
-//    processedSize = (UInt32)processedLoc;
-//    return res;
-    assert(false && "Not implemented");
-    return false;
+    if (size > kChunkSizeMax)
+      size = kChunkSizeMax;
+#ifdef _WIN32
+    DWORD processedLoc = 0;
+    bool res = BOOLToBool(::WriteFile(m_Handle, data, size, &processedLoc, NULL));
+    processedSize = (UInt32)processedLoc;
+    return res;
+#else
+    if (!m_Stream.is_open() || !(m_OpenMode & std::ios::out))
+      return false;
+    m_Stream.write((char*)data, size);
+    processedSize = size;
+    return !m_Stream.bad();
+#endif
   }
 
 }

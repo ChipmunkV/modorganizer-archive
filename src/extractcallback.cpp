@@ -29,8 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <filesystem>
 #include <string>
 #include <stdexcept>
+#include <iostream> // UNUSED
 
-std::wstring operationResultToString(Int32 operationResult)
+PathStr operationResultToString(Int32 operationResult)
 {
   namespace R = NArchive::NExtract::NOperationResult;
 
@@ -40,34 +41,34 @@ std::wstring operationResultToString(Int32 operationResult)
       return {};
 
     case R::kUnsupportedMethod:
-      return L"Encoding method unsupported";
+      return ALOGSTR"Encoding method unsupported";
 
     case R::kDataError:
-      return L"Data error";
+      return ALOGSTR"Data error";
 
     case R::kCRCError:
-      return L"CRC error";
+      return ALOGSTR"CRC error";
 
     case R::kUnavailable:
-      return L"Unavailable";
+      return ALOGSTR"Unavailable";
 
     case R::kUnexpectedEnd:
-      return L"Unexpected end of archive";
+      return ALOGSTR"Unexpected end of archive";
 
     case R::kDataAfterEnd:
-      return L"Data after end of archive";
+      return ALOGSTR"Data after end of archive";
 
     case R::kIsNotArc:
-      return L"Not an ARC";
+      return ALOGSTR"Not an ARC";
 
     case R::kHeadersError:
-      return L"Bad headers";
+      return ALOGSTR"Bad headers";
 
     case R::kWrongPassword:
-      return L"Wrong password";
+      return ALOGSTR"Wrong password";
 
     default:
-      return fmt::format(L"Unknown error {}", operationResult);
+      return fmt::format(ALOGSTR"Unknown error {}", operationResult);
   }
 }
 
@@ -78,20 +79,20 @@ CArchiveExtractCallback::CArchiveExtractCallback(
   Archive::PasswordCallback passwordCallback,
   Archive::LogCallback logCallback,
   IInArchive *archiveHandler,
-  std::wstring const& directoryPath,
+  PathStr const& directoryPath,
   FileData* const *fileData,
   std::size_t nbFiles,
   UInt64 totalFileSize,
   std::wstring *password)
-//  : m_ArchiveHandler(archiveHandler)
-  : m_Total(0)
+  : m_ArchiveHandler(archiveHandler)
+  , m_Total(0)
   , m_DirectoryPath()
   , m_Extracting(false)
   , m_Canceled(false)
   , m_Timers{}
   , m_ProcessedFileInfo{}
   , m_OutputFileStream{}
-//  , m_OutFileStreamCom{}
+  , m_OutFileStreamCom{}
   , m_FileData(fileData)
   , m_NbFiles(nbFiles)
   , m_TotalFileSize(totalFileSize)
@@ -134,143 +135,138 @@ STDMETHODIMP CArchiveExtractCallback::SetCompleted(const UInt64 *completed)
 
 template <typename T> bool CArchiveExtractCallback::getOptionalProperty(UInt32 index, int property, T *result) const
 {
-//  PropertyVariant prop;
-//  if (m_ArchiveHandler->GetProperty(index, property, &prop) != S_OK) {
-//    m_LogCallback(Archive::LogLevel::Error, fmt::format(L"Error getting property {}.", property));
-//    return false;
-//  }
-//  if (prop.is_empty()) {
-//    return false;
-//  }
-//  *result = static_cast<T>(prop);
-//  return true;
-  assert(false && "Not implemented");
+  PropertyVariant prop;
+  if (m_ArchiveHandler->GetProperty(index, property, &prop) != S_OK) {
+    m_LogCallback(Archive::LogLevel::Error, fmt::format(ALOGSTR"Error getting property {}.", property));
+    return false;
+  }
+  if (prop.is_empty()) {
+    return false;
+  }
+  *result = static_cast<T>(prop);
   return true;
 }
 
 template <typename T> bool CArchiveExtractCallback::getProperty(UInt32 index, int property, T *result) const
 {
-//  PropertyVariant prop;
-//  if (m_ArchiveHandler->GetProperty(index, property, &prop) != S_OK) {
-//    m_LogCallback(Archive::LogLevel::Error, fmt::format(L"Error getting property {}.", property));
-//    return false;
-//  }
-//
-//  *result = static_cast<T>(prop);
-//  return true;
-  assert(false && "Not implemented");
+  PropertyVariant prop;
+  if (m_ArchiveHandler->GetProperty(index, property, &prop) != S_OK) {
+    m_LogCallback(Archive::LogLevel::Error, fmt::format(ALOGSTR"Error getting property {}.", property));
+    return false;
+  }
+
+  *result = static_cast<T>(prop);
   return true;
 }
 
 STDMETHODIMP CArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStream **outStream, Int32 askExtractMode)
 {
-//  auto guard = m_Timers.GetStream.instrument();
-//  namespace fs = std::filesystem;
-//
-//  *outStream = nullptr;
-//  m_OutFileStreamCom.Release();
-//
-//  m_FullProcessedPaths.clear();
-//  m_Extracting = false;
-//
-//  if (askExtractMode != NArchive::NExtract::NAskMode::kExtract) {
-//    return S_OK;
-//  }
-//
-//  std::vector<std::wstring> filenames = m_FileData[index]->getOutputFilePaths();
-//  m_FileData[index]->clearOutputFilePaths();
-//  if (filenames.empty()) {
-//    return S_OK;
-//  }
-//
-//  try
-//  {
-//    m_ProcessedFileInfo.AttribDefined = getOptionalProperty(index, kpidAttrib, &m_ProcessedFileInfo.Attrib);
-//
-//    if (!getProperty(index, kpidIsDir, &m_ProcessedFileInfo.isDir)) {
-//      return E_ABORT;
-//    }
-//
-//    //Why do we do this? And if we are doing this, shouldn't we copy the created
-//    //and accessed times (kpidATime, kpidCTime) as well?
-//    m_ProcessedFileInfo.MTimeDefined = getOptionalProperty(index, kpidMTime, &m_ProcessedFileInfo.MTime);
-//
-//    if (m_ProcessedFileInfo.isDir) {
-//      for (auto const& filename : filenames) {
-//        auto fullpath = m_DirectoryPath / fs::path(filename).make_preferred();
-//        std::error_code ec;
-//        std::filesystem::create_directories(fullpath, ec);
-//        if (ec) {
-//          reportError(L"cannot created directory '{}': {}", fullpath, ec);
-//          return E_ABORT;
-//        }
-//        m_FullProcessedPaths.push_back(fullpath);
-//      }
-//    } else {
-//      for (auto const& filename : filenames) {
-//        auto fullProcessedPath = m_DirectoryPath / fs::path(filename).make_preferred();
-//        //If the filename contains a '/' we want to make the directory
-//        auto directoryPath = fullProcessedPath.parent_path();
-//        if (!fs::exists(directoryPath)) {
-//          //Make the containing directory
-//          std::error_code ec;
-//          std::filesystem::create_directories(directoryPath, ec);
-//          if (ec) {
-//            reportError(L"cannot created directory '{}': {}", directoryPath, ec);
-//            return E_ABORT;
-//          }
-//          //m_DirectoryPath.mkpath(filename.left(slashPos));
-//        }
-//        //If the file already exists, delete it
-//        if (fs::exists(fullProcessedPath)) {
-//          std::error_code ec;
-//          if (!fs::remove(fullProcessedPath, ec)) {
-//            reportError(L"cannot delete output file '{}': {}", fullProcessedPath, ec);
-//            return E_ABORT;
-//          }
-//        }
-//        m_FullProcessedPaths.push_back(fullProcessedPath);
-//      }
-//
-//      m_OutputFileStream = new MultiOutputStream([this](UInt32 size, UInt64 totalSize) {
-//        m_ExtractedFileSize += size;
-//        if (m_ProgressCallback) {
-//          m_ProgressCallback(Archive::ProgressType::EXTRACTION, m_ExtractedFileSize, m_TotalFileSize);
-//        }
-//      });
-//      CComPtr<MultiOutputStream> outStreamCom(m_OutputFileStream);
-//
-//      if (!m_OutputFileStream->Open(m_FullProcessedPaths)) {
+  auto guard = m_Timers.GetStream.instrument();
+  namespace fs = std::filesystem;
+
+  *outStream = nullptr;
+  m_OutFileStreamCom.Release();
+
+  m_FullProcessedPaths.clear();
+  m_Extracting = false;
+
+  if (askExtractMode != NArchive::NExtract::NAskMode::kExtract) {
+    return S_OK;
+  }
+
+  std::vector<std::wstring> filenames = m_FileData[index]->getOutputFilePaths();
+  m_FileData[index]->clearOutputFilePaths();
+  if (filenames.empty()) {
+    return S_OK;
+  }
+
+  try
+  {
+    m_ProcessedFileInfo.AttribDefined = getOptionalProperty(index, kpidAttrib, &m_ProcessedFileInfo.Attrib);
+
+    if (!getProperty(index, kpidIsDir, &m_ProcessedFileInfo.isDir)) {
+      return E_ABORT;
+    }
+
+    //Why do we do this? And if we are doing this, shouldn't we copy the created
+    //and accessed times (kpidATime, kpidCTime) as well?
+    m_ProcessedFileInfo.MTimeDefined = getOptionalProperty(index, kpidMTime, &m_ProcessedFileInfo.MTime);
+
+    if (m_ProcessedFileInfo.isDir) {
+      for (auto const& filename : filenames) {
+        auto fullpath = m_DirectoryPath / fs::path(filename).make_preferred();
+        std::error_code ec;
+        std::filesystem::create_directories(fullpath, ec);
+        if (ec) {
+          reportError(ALOGSTR"cannot created directory '{}': {}", fullpath, ec);
+          return E_ABORT;
+        }
+        m_FullProcessedPaths.push_back(fullpath);
+      }
+    } else {
+      for (auto const& filename : filenames) {
+        auto fullProcessedPath = m_DirectoryPath / fs::path(filename).make_preferred();
+        //If the filename contains a '/' we want to make the directory
+        auto directoryPath = fullProcessedPath.parent_path();
+        if (!fs::exists(directoryPath)) {
+          //Make the containing directory
+          std::error_code ec;
+          std::filesystem::create_directories(directoryPath, ec);
+          if (ec) {
+            reportError(ALOGSTR"cannot created directory '{}': {}", directoryPath, ec);
+            return E_ABORT;
+          }
+          //m_DirectoryPath.mkpath(filename.left(slashPos));
+        }
+        //If the file already exists, delete it
+        if (fs::exists(fullProcessedPath)) {
+          std::error_code ec;
+          if (!fs::remove(fullProcessedPath, ec)) {
+            reportError(ALOGSTR"cannot delete output file '{}': {}", fullProcessedPath, ec);
+            return E_ABORT;
+          }
+        }
+        m_FullProcessedPaths.push_back(fullProcessedPath);
+      }
+
+      m_OutputFileStream = new MultiOutputStream([this](UInt32 size, UInt64 totalSize) {
+        m_ExtractedFileSize += size;
+        if (m_ProgressCallback) {
+          m_ProgressCallback(Archive::ProgressType::EXTRACTION, m_ExtractedFileSize, m_TotalFileSize);
+        }
+      });
+      CMyComPtr<MultiOutputStream> outStreamCom(m_OutputFileStream);
+
+      if (!m_OutputFileStream->Open(m_FullProcessedPaths)) {
 //        reportError(L"cannot open output file '{}': {}", m_FullProcessedPaths[0], ::GetLastError());
-//        return E_ABORT;
-//      }
-//
-//      UInt64 fileSize;
-//      auto fileSizeFound = getOptionalProperty(index, kpidSize, &fileSize);
-//      if (fileSizeFound && m_OutputFileStream->SetSize(fileSize) != S_OK) {
-//        m_LogCallback(Archive::LogLevel::Error, fmt::format(L"SetSize() failed on {}.", m_FullProcessedPaths[0]));
-//      }
-//
-//      //This is messy but I can't find another way of doing it. A simple
-//      //assignment of m_outFileStream to *outStream doesn't increase the
-//      //reference count.
-//      m_OutFileStreamCom = outStreamCom;
-//      *outStream = outStreamCom.Detach();
-//    }
-//
-//    if (m_FileChangeCallback) {
-//      m_FileChangeCallback(Archive::FileChangeType::EXTRACTION_START, filenames[0]);
-//    }
-//
-//    return S_OK;
-//  }
-//  catch (std::exception const &e)
-//  {
-//    m_LogCallback(Archive::LogLevel::Error, fmt::format(L"Caught exception {} in GetStream.", e));
-//  }
-//  return E_FAIL;
-  assert(false && "Not implemented");
-  return 0;
+        std::cerr << "FIXME: Not implemented" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n"; assert(false && "Not implemented");
+        return E_ABORT;
+      }
+
+      UInt64 fileSize;
+      auto fileSizeFound = getOptionalProperty(index, kpidSize, &fileSize);
+      if (fileSizeFound && m_OutputFileStream->SetSize(fileSize) != S_OK) {
+        m_LogCallback(Archive::LogLevel::Error, fmt::format(ALOGSTR"SetSize() failed on {}.", m_FullProcessedPaths[0]));
+      }
+
+      //This is messy but I can't find another way of doing it. A simple
+      //assignment of m_outFileStream to *outStream doesn't increase the
+      //reference count.
+      m_OutFileStreamCom = outStreamCom;
+      *outStream = outStreamCom.Detach();
+    }
+
+    if (m_FileChangeCallback) {
+      m_FileChangeCallback(Archive::FileChangeType::EXTRACTION_START, filenames[0]);
+    }
+
+    return S_OK;
+  }
+  catch (std::exception const &e)
+  {
+    m_LogCallback(Archive::LogLevel::Error, fmt::format(ALOGSTR"Caught exception {} in GetStream.", e));
+  }
+  return E_FAIL;
 }
 
 STDMETHODIMP CArchiveExtractCallback::PrepareOperation(Int32 askExtractMode)
@@ -284,44 +280,46 @@ STDMETHODIMP CArchiveExtractCallback::PrepareOperation(Int32 askExtractMode)
 
 STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
 {
-//  if (operationResult != NArchive::NExtract::NOperationResult::kOK) {
-//    reportError(operationResultToString(operationResult));
-//  }
-//
-//  if (m_OutFileStreamCom) {
-//    if (m_ProcessedFileInfo.MTimeDefined) {
-//      auto guard = m_Timers.SetOperationResult.SetMTime.instrument();
-//      m_OutputFileStream->SetMTime(&m_ProcessedFileInfo.MTime);
-//    }
-//    auto guard = m_Timers.SetOperationResult.Close.instrument();
-//    RINOK(m_OutputFileStream->Close())
-//  }
-//
-//  {
-//    auto guard = m_Timers.SetOperationResult.Release.instrument();
-//    m_OutFileStreamCom.Release();
-//  }
-//
-//  auto guard = m_Timers.SetOperationResult.SetFileAttributesW.instrument();
-//  if (m_Extracting && m_ProcessedFileInfo.AttribDefined) {
-//    //this is moderately annoying. I can't do this on the file handle because if
-//    //the file in question is a directory there isn't a file handle.
-//    //Also I'd like to convert the attributes to QT attributes but I'm not sure
-//    //if that's possible. Hence the conversions and strange string.
-//    for (auto &path : m_FullProcessedPaths) {
-//      std::wstring const fn = L"\\\\?\\" + path.native();
-//      //If the attributes are POSIX-based, fix that
-//      if (m_ProcessedFileInfo.Attrib & 0xF0000000)
-//        m_ProcessedFileInfo.Attrib &= 0x7FFF;
-//
-//      //Should probably log any errors here somehow
-//      ::SetFileAttributesW(fn.c_str(), m_ProcessedFileInfo.Attrib);
-//    }
-//  }
-//
-//  return S_OK;
-  assert(false && "Not implemented");
-  return 0;
+  if (operationResult != NArchive::NExtract::NOperationResult::kOK) {
+    reportError(operationResultToString(operationResult));
+  }
+
+  if (m_OutFileStreamCom) {
+    if (m_ProcessedFileInfo.MTimeDefined) {
+      auto guard = m_Timers.SetOperationResult.SetMTime.instrument();
+      m_OutputFileStream->SetMTime(&m_ProcessedFileInfo.MTime);
+    }
+    auto guard = m_Timers.SetOperationResult.Close.instrument();
+    RINOK(m_OutputFileStream->Close())
+  }
+
+  {
+    auto guard = m_Timers.SetOperationResult.Release.instrument();
+    m_OutFileStreamCom.Release();
+  }
+
+  auto guard = m_Timers.SetOperationResult.SetFileAttributesW.instrument();
+  if (m_Extracting && m_ProcessedFileInfo.AttribDefined) {
+#ifdef _WIN32
+    //this is moderately annoying. I can't do this on the file handle because if
+    //the file in question is a directory there isn't a file handle.
+    //Also I'd like to convert the attributes to QT attributes but I'm not sure
+    //if that's possible. Hence the conversions and strange string.
+    for (auto &path : m_FullProcessedPaths) {
+      std::wstring const fn = L"\\\\?\\" + path.native();
+      //If the attributes are POSIX-based, fix that
+      if (m_ProcessedFileInfo.Attrib & 0xF0000000)
+        m_ProcessedFileInfo.Attrib &= 0x7FFF;
+
+      //Should probably log any errors here somehow
+      ::SetFileAttributesW(fn.c_str(), m_ProcessedFileInfo.Attrib);
+    }
+#else
+    std::cerr << "FIXME: Not implemented m_ProcessedFileInfo.Attrib: '" + std::to_string(m_ProcessedFileInfo.Attrib) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+#endif
+  }
+
+  return S_OK;
 }
 
 
@@ -343,7 +341,7 @@ void CArchiveExtractCallback::SetCanceled(bool aCanceled)
 }
 
 
-void CArchiveExtractCallback::reportError(std::wstring const& message)
+void CArchiveExtractCallback::reportError(PathStr const& message)
 {
   if (m_ErrorCallback) {
     m_ErrorCallback(message);

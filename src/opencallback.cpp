@@ -35,6 +35,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <fmt/format.h>
 
+#ifndef _WIN32
+#include "Common/MyCom.h"
+#endif
+
 #define UNUSED(x)
 
 CArchiveOpenCallback::CArchiveOpenCallback(
@@ -50,9 +54,10 @@ CArchiveOpenCallback::CArchiveOpenCallback(
     throw std::runtime_error("invalid archive path");
   }
 
-  if (!IO::FileBase::GetFileInformation(filepath, &m_FileInfo)) {
-    throw std::runtime_error("failed to retrieve file information");
-  }
+//  if (!IO::FileBase::GetFileInformation(filepath, &m_FileInfo)) {
+//    throw std::runtime_error("failed to retrieve file information");
+//  }
+  std::cerr << "FIXME: get m_FileInfo" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
 }
 
 /* -------------------- IArchiveOpenCallback -------------------- */
@@ -94,67 +99,75 @@ STDMETHODIMP CArchiveOpenCallback::SetSubArchiveName(const wchar_t *name)
 
 STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value)
 {
-//  //A scan of the source code indicates that the only things that ever call the
-//  //IArchiveOpenVolumeCallback interface ask for the file name and size.
-//  PropertyVariant &prop = *static_cast<PropertyVariant*>(value);
-//
-//  switch (propID) {
-//    case kpidName: {
-//      if (m_SubArchiveMode) {
-//        prop = m_SubArchiveName;
-//      } else {
-//        // Note: Need to call .native(), otherwize we get a link error because we try to
-//        // assign a fs::path to the variant.
-//        prop = m_Path.filename().native();
-//      }
-//    } break;
-//
-//    case kpidIsDir:  prop = m_FileInfo.isDir(); break;
-//    case kpidSize:   prop = m_FileInfo.fileSize(); break;
+  //A scan of the source code indicates that the only things that ever call the
+  //IArchiveOpenVolumeCallback interface ask for the file name and size.
+  PropertyVariant &prop = *static_cast<PropertyVariant*>(value);
+
+  switch (propID) {
+    case kpidName: {
+      if (m_SubArchiveMode) {
+        prop = m_SubArchiveName;
+      } else {
+        // Note: Need to call .native(), otherwize we get a link error because we try to
+        // assign a fs::path to the variant.
+        prop = m_Path.filename().native();
+      }
+    } break;
+
+    case kpidIsDir:  prop = m_FileInfo.isDir(); break;
+    case kpidSize:   prop = m_FileInfo.fileSize(); break;
 //    case kpidAttrib: prop = m_FileInfo.fileAttributes(); break;
 //    case kpidCTime:  prop = m_FileInfo.creationTime(); break;
 //    case kpidATime:  prop = m_FileInfo.lastAccessTime(); break;
 //    case kpidMTime:  prop = m_FileInfo.lastWriteTime(); break;
-//
-//    default: m_LogCallback(Archive::LogLevel::Warning, fmt::format(L"Unexpected property {}.", propID));
-//  }
-//  return S_OK;
-  assert(false && "Not implemented");
-  return 0;
+    case kpidAttrib:
+    case kpidCTime:
+    case kpidATime:
+    case kpidMTime:
+      std::cerr << "FIXME: GetProperty '" + std::to_string(propID) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n"; assert(false && "Not implemented");
+      break;
+
+    default: m_LogCallback(Archive::LogLevel::Warning, fmt::format(ALOGSTR"Unexpected property {}.", propID));
+  }
+  std::cerr << "FIXME: GetProperty '" + std::to_string(propID) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+  return S_OK;
 }
 
 STDMETHODIMP CArchiveOpenCallback::GetStream(const wchar_t *name, IInStream **inStream)
 {
-//  *inStream = nullptr;
-//
-//  // this function will be called repeatedly for split archives, `name` will
-//  // have increasing numbers in the extension and S_FALSE must be returned
-//  // when a filename doesn't exist so the search stops
-//
-//  if (!name) {
-//    return S_FALSE;
-//  }
-//
-//  // `name` is just the filename, so build a path from the directory that
-//  // contained the last file
-//  const auto path = m_Path.parent_path() / name;
-//
-//  if (!exists(m_FileInfo.path()) || m_FileInfo.isDir()) {
-//    return S_FALSE;
-//  }
-//
-//  if (!IO::FileBase::GetFileInformation(path, &m_FileInfo)) {
-//    return S_FALSE;
-//  }
-//
-//  CComPtr<InputStream> inFile(new InputStream);
-//
-//  if (!inFile->Open(m_FileInfo.path())) {
-//    return ::GetLastError();
-//  }
-//
-//  *inStream = inFile.Detach();
-//  return S_OK;
-  assert(false && "Not implemented");
-  return 0;
+  std::cerr << "FIXME: CArchiveOpenCallback::GetStream" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+  *inStream = nullptr;
+
+  // this function will be called repeatedly for split archives, `name` will
+  // have increasing numbers in the extension and S_FALSE must be returned
+  // when a filename doesn't exist so the search stops
+
+  if (!name) {
+    return S_FALSE;
+  }
+
+  // `name` is just the filename, so build a path from the directory that
+  // contained the last file
+  const auto path = m_Path.parent_path() / name;
+
+  if (!exists(m_FileInfo.path()) || m_FileInfo.isDir()) {
+    return S_FALSE;
+  }
+
+  if (!IO::FileBase::GetFileInformation(path, &m_FileInfo)) {
+    return S_FALSE;
+  }
+
+  CMyComPtr<InputStream> inFile(new InputStream);
+
+  if (!inFile->Open(m_FileInfo.path())) {
+#ifdef _WIN32
+    return ::GetLastError();
+#else
+  return E_FAIL;
+#endif
+  }
+
+  *inStream = inFile.Detach();
+  return S_OK;
 }

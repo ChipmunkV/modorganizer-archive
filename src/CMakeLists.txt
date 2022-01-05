@@ -23,6 +23,10 @@ else()
 
 	add_library(${PROJECT_NAME} SHARED ${input_files})
 
+	if(NOT WIN32)
+		set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME modorganizer-${PROJECT_NAME}) # name conflict
+	endif()
+
 	set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${SEVENZ_ROOT}/CPP)

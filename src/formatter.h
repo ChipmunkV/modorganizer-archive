@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 namespace fmt {
 
   // I don't know why fmt does not provide this...
+#ifdef _WIN32
   template<>
   struct formatter<std::string, wchar_t> : formatter<std::wstring, wchar_t>
   {
@@ -72,11 +73,40 @@ namespace fmt {
       return formatter<std::wstring, wchar_t>::format(path.native(), ctx);
     }
   };
+#else
+  template<>
+  struct formatter<std::exception, char> : formatter<std::string, char>
+  {
+    template<typename FormatContext>
+    auto format(std::exception const& ex, FormatContext& ctx) {
+      return formatter<std::string, char>::format(ex.what(), ctx);
+    }
+  };
+
+  template<>
+  struct formatter<std::error_code, char> : formatter<std::string, char>
+  {
+    template<typename FormatContext>
+    auto format(std::error_code const& ec, FormatContext& ctx) {
+      return formatter<std::string, char>::format(ec.message(), ctx);
+    }
+  };
+
+  template<>
+  struct formatter<std::filesystem::path, char> : formatter<std::string, char>
+  {
+    template<typename FormatContext>
+    auto format(std::filesystem::path const& path, FormatContext& ctx) {
+      return formatter<std::string, char>::format(path.native(), ctx);
+    }
+  };
+#endif
 
 }
 
 namespace ArchiveStrings {
 
+#ifdef _WIN32
   /**
    * @brief Join the element of the given container using the given separator.
    *
@@ -113,6 +143,44 @@ namespace ArchiveStrings {
       std::begin(s), [](wchar_t c) { return static_cast<wchar_t>(::towlower(c)); });
     return s;
   }
+#else
+  /**
+   * @brief Join the element of the given container using the given separator.
+   *
+   * @param c The container. Must be satisfy standard container requirements.
+   * @param sep The separator.
+   *
+   * @return a string containing the element joint, or an empty string if c
+   *     is empty.
+   */
+  template <class C>
+  std::string join(C const& c, std::string const& sep) {
+    auto begin = std::begin(c), end = std::end(c);
+
+    if (begin == end) {
+      return {};
+    }
+    std::string r = *begin++;
+    for (; begin != end; ++begin) {
+      r += *begin + sep;
+    }
+
+    return r;
+  }
+
+  /**
+   * @brief Convert the given string to lowercase.
+   *
+   * @param s The string to convert.
+   *
+   * @return the converted string.
+   */
+  inline std::string towlower(std::string s) {
+    std::transform(std::begin(s), std::end(s),
+      std::begin(s), [](char c) { return static_cast<char>(::towlower(c)); });
+    return s;
+  }
+#endif
 }
 
 

@@ -38,10 +38,10 @@ class CArchiveOpenCallback: public IArchiveOpenCallback,
                             public IArchiveOpenSetSubArchiveName
 {
 
-//  UNKNOWN_4_INTERFACE(IArchiveOpenCallback,
-//                      IArchiveOpenVolumeCallback,
-//                      ICryptoGetTextPassword,
-//                      IArchiveOpenSetSubArchiveName);
+  UNKNOWN_4_INTERFACE(IArchiveOpenCallback,
+                      IArchiveOpenVolumeCallback,
+                      ICryptoGetTextPassword,
+                      IArchiveOpenSetSubArchiveName);
 
 public:
 

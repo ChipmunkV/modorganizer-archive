@@ -42,7 +42,7 @@ class MultiOutputStream :
   public IOutStream
 {
 
-//  UNKNOWN_1_INTERFACE(IOutStream);
+  UNKNOWN_1_INTERFACE(IOutStream);
 
 public:
 

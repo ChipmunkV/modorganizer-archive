@@ -21,10 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ARCHIVE_LIBRARY_H
 #define ARCHIVE_LIBRARY_H
 
-#include <cassert>
-//#include <Windows.h>
-
+#include <cassert> // UNUSED
+#include <iostream> // UNUSED
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <dlfcn.h>
+#include <string>
 using HMODULE = void*;
+#endif
 
 /**
  * Very small wrapper around Windows DLLs functions.
@@ -33,18 +38,26 @@ class ALibrary {
 public:
 
   ALibrary(const char* path) :
+#ifdef _WIN32
+    m_Module{ nullptr }, m_LastError{ ERROR_SUCCESS } {
+    m_Module = LoadLibraryA(path);
+#else
     m_Module{ nullptr }, m_LastError{ 0 } {
-//    m_Module{ nullptr }, m_LastError{ ERROR_SUCCESS } {
-//    m_Module = LoadLibraryA(path);
-//    if (m_Module == nullptr) {
-//      updateLastError();
-//    }
+    m_Module = dlopen(path, RTLD_LAZY);
+#endif
+    if (m_Module == nullptr) {
+      updateLastError();
+    }
   }
 
   ~ALibrary() {
-//    if (m_Module) {
-//      FreeLibrary(m_Module);
-//    }
+    if (m_Module) {
+#ifdef _WIN32
+      FreeLibrary(m_Module);
+#else
+      dlclose(m_Module);
+#endif
+    }
   }
 
   /**
@@ -57,19 +70,22 @@ public:
    */
   template <class T>
   T resolve(const char* procName) {
-//    if (!m_Module) {
-//      return nullptr;
-//    }
-//    auto proc = GetProcAddress(m_Module, procName);
-//    if (!proc) {
-//      updateLastError();
-//      return nullptr;
-//    }
-//    return reinterpret_cast<T>(proc);
-    assert(false && "Not implemented");
-    return nullptr;
+    if (!m_Module) {
+      return nullptr;
+    }
+#ifdef _WIN32
+    auto proc = GetProcAddress(m_Module, procName);
+#else
+    auto proc = dlsym(m_Module, procName);
+#endif
+    if (!proc) {
+      updateLastError();
+      return nullptr;
+    }
+    return reinterpret_cast<T>(proc);
   }
 
+#ifdef _WIN32
   /**
    * @return the last error that occurs with this object, or ERROR_SUCCESS if no
    *     error occurred.
@@ -77,6 +93,15 @@ public:
   DWORD getLastError() const {
     return m_LastError;
   }
+#else
+  /**
+   * @return the last error that occurs with this object, or an empty string if no
+   *     error occurred.
+   */
+  std::string getLastError() const {
+    return m_LastError;
+  }
+#endif
 
   /**
    * @return true if this library is open, false otherwize.
@@ -91,11 +116,20 @@ public:
 private:
 
   void updateLastError() {
+#ifdef _WIN32
     m_LastError = ::GetLastError();
+#else
+    char *lastError = dlerror();
+    m_LastError = lastError ? lastError : "";
+#endif
   }
 
   HMODULE m_Module;
+#ifdef _WIN32
   DWORD m_LastError;
+#else
+  std::string m_LastError;
+#endif
 
 };
 
