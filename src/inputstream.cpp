@@ -51,7 +51,6 @@ bool InputStream::Open(std::filesystem::path const& filename)
 
 STDMETHODIMP InputStream::Read(void *data, UInt32 size, UInt32 *processedSize)
 {
-  std::cerr << "FIXME: inputstream Read" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
   UInt32 realProcessedSize;
   bool result =  m_File.Read(data, size, realProcessedSize);
 

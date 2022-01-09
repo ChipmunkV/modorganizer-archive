@@ -13,6 +13,7 @@ using PathChar = char;
 #endif
 
 using PathStr = std::basic_string<PathChar>;
+using PathStrView = std::basic_string_view<PathChar>;
 using PathStrIStream = std::basic_istringstream<PathChar>;
 
 #endif /* PATHSTR_H_ */

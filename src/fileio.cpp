@@ -40,7 +40,6 @@ namespace IO {
     if (m_Stream.close(), m_Stream.fail())
       return false;
     m_Stream = std::fstream();
-    std::cerr << "FIXME: FileBase::Close" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     return true;
 #endif
   }
@@ -90,7 +89,6 @@ namespace IO {
     newPosition = (((UInt64)(UInt32)high) << 32) + low;
     return true;
 #else
-    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     if (!m_Stream.is_open() || !(m_OpenMode & (std::ios::in | std::ios::out)) ||
         (moveMethod != FILE_BEGIN && moveMethod != FILE_CURRENT && moveMethod != FILE_END))
       return false;
@@ -99,7 +97,6 @@ namespace IO {
       m_Stream.clear();
     m_OpenMode & std::ios::in ? (void) m_Stream.seekg(distanceToMove, m) : (void) m_Stream.seekp(distanceToMove, m);
     const auto pos = m_OpenMode & std::ios::in ? m_Stream.tellg() : m_Stream.tellp();
-    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     if (!m_Stream.good())
       return false;
     newPosition = pos;
@@ -137,7 +134,7 @@ namespace IO {
     }
 
     m_Stream.open(m_Path = path, m_OpenMode = openMode | std::ios::binary);
-    std::cerr << "FIXME: FileBase::Create" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
+    std::cerr << "FIXME: FileBase::Create '" + path.string() + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     return m_Stream.good();
   }
 #endif
@@ -191,7 +188,6 @@ namespace IO {
       data = (void*)((unsigned char*)data + processedLoc);
       size -= processedLoc;
     } while (size > 0);
-    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     return true;
   }
   bool FileIn::Read1(void* data, UInt32 size, UInt32& processedSize) noexcept {
@@ -205,7 +201,6 @@ namespace IO {
       return false;
     m_Stream.read((char*)data, size);
     processedSize = m_Stream.gcount();
-    std::cerr << "FIXME: rdstate: '" + std::to_string(m_Stream.rdstate()) + "'" + std::string(" \e]8;;eclsrc://") + __FILE__ + ":" + std::to_string(__LINE__) + "\a" + __FILE__ + ":" + std::to_string(__LINE__) + "\e]8;;\a\n";
     return !m_Stream.bad();
 #endif
   }
